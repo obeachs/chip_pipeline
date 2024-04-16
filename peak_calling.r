@@ -25,7 +25,7 @@ sample_sheet <- read.csv('~/Downloads/test_chip.csv') %>% mutate(comparison=past
 )
 
 '''All comparisons within the sample sheet'''
-get_unique_comparisons(sample_sheet$comparison)
+comps <- get_unique_comparisons(sample_sheet$comparison)
 
 '''macs3 - peak calling and differential peak analysis'''
 for(i in unique(sample_sheet$Genotype)){
@@ -38,7 +38,7 @@ for(i in unique(sample_sheet$Genotype)){
         input_info <- paste(inputs$bampath, collapse = " ")
         outname <- paste0(ips$Genotype[1],'_',ips$Condition[1],'_macs3')
         macs3_command <- paste0('macs3 callpeak -f BAMPE -t ', ip_info,'-c ',input_info,
-        '--gsize 119485143 --SPMR -n ', outname)
+        '--gsize 119485143 -n ', outname)
         print(macs3_command)
     }
 }
@@ -94,3 +94,20 @@ for(i in unique(sample_sheet$Genotype)){
     }
 }
 
+for(i in comps){
+    comp1_IP <- unique(test_list[grepl(i[1], test_list)])
+    comp1_IP <- comp1_IP[!grepl('Input', comp1_IP)]
+    comp1_input <- unique(test_list[grepl(i[1], test_list)])
+    comp1_input <- comp1_input[grepl('Input', comp1_input)]
+
+    comp2_IP <- unique(test_list[grepl(i[2], test_list)])
+    comp2_IP <- comp2_IP[!grepl('Input', comp2_IP)]
+    comp2_input <- unique(test_list[grepl(i[2], test_list)])
+    comp2_input <- comp2_input[grepl('Input', comp2_input)]
+
+
+    outname <- paste0(i[1],'_',i[2],'_SICER2')
+
+    sicer_command <- paste0('sicer_df -t ', comp1_IP, ' ', comp2_IP,' -c ',comp1_input,' ',comp2_input,' -s tair10 -o ', outname )
+    print(sicer_command)
+}
