@@ -7,7 +7,7 @@ conda_list()[[1]][5] %>%
   use_condaenv(required = TRUE)
 
 macs3_path <- '/Users/frankwellmer/miniconda3/envs/chipseq/bin/macs3'
-
+out_directory
 
 '''Set up where you want the output files to be made, might be 
 easier to set this wherever you have the sample info sheet'''
