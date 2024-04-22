@@ -2,12 +2,18 @@ library(ChIPpeakAnno)
 library(dplyr)
 library(tidyr)
 library(reticulate)
+
+
 conda_list()
-conda_list()[[1]][5] %>% 
+conda_list()[[1]][5] %>%  
   use_condaenv(required = TRUE)
 
 macs3_path <- '/Users/frankwellmer/miniconda3/envs/chipseq/bin/macs3'
-out_directory
+out_directory <- '~/joe/test_output/chip_pipeline_tests/'
+system('mkdir -p ',paste0(out_directory,'macs3/'))
+system('mkdir -p ',paste0(out_directory,'sicer/'))
+macs_out <- paste0(out_directory,'macs3/')
+sicer_out <- paste0(out_directory,'sicer/')
 
 '''Set up where you want the output files to be made, might be 
 easier to set this wherever you have the sample info sheet'''
@@ -45,14 +51,14 @@ for(i in unique(sample_sheet$Genotype)){
         inputs <- data %>% dplyr::filter(Control=='Input')
         ip_info <-  paste(ips$bampath, collapse = " ")
         input_info <- paste(inputs$bampath, collapse = " ")
-        outname <- paste0(ips$Genotype[1],'_',ips$Condition[1],'_macs3')
+        outname <- paste0(macs_out,ips$Genotype[1],'_',ips$Condition[1],'_macs3')
         macs3_command <- paste0(macs3_path,' callpeak -f BAMPE -t ', ip_info,' -c ',input_info,
         ' --gsize 119485143 --bdg -n ', outname)
         system(macs3_command)
     }
 }
 
-macs_peaks <- list.files('./',pattern='bdg')
+macs_peaks <- list.files(macs_out,pattern='bdg')
 macs3 bdgdiff -t1 treatment1.bedGraph -c1 control1.bedGraph -t2 
 treatment2.bedGraph -c2 control2.bedGraph --depth1 1.0 --depth2 1.0 -o output.bedGraph --minlen 500 --maxgap 1000 --cutoff 1.0
 
@@ -70,7 +76,7 @@ for(i in comps){
   comp2_input <- comp2_input[grepl('control', comp2_input)]
   
   
-  outname <- paste0(i[1],'_',i[2],'_macs_diffpeaks.bedgraph')
+  outname <- paste0(macs_out, i[1],'_',i[2],'_macs_diffpeaks.bedgraph')
   
   sicer_command <- paste0(macs3_path, ' bdgdiff -t1 ', comp1_IP, ' -c1 ', comp1_input,' -t2 ',comp2_IP,' -c2 ',comp2_input,' -s tair10 -o ', outname ,
                           ' --depth1 1.0 --depth2 1.0 -o output.bedGraph --minlen 500 --maxgap 1000 --cutoff 1.0')
@@ -94,10 +100,10 @@ for(i in unique(sample_sheet$Genotype)){
         inputs <- data %>% dplyr::filter(Control=='Input')
         ip_info <-  paste(ips$bampath, collapse = " ")
         input_info <- paste(inputs$bampath, collapse = " ")
-        merge_outname_ips <- paste0(ips$Genotype[1],'_',ips$Condition[1],'_', ips$Control[1],'_merged.bam')
+        merge_outname_ips <- paste0(sicer_out,ips$Genotype[1],'_',ips$Condition[1],'_', ips$Control[1],'_merged.bam')
         merge_command_ips <- paste0('samtools merge -o ', merge_outname_ips,' ', ip_info)
 
-        merge_outname_input <-  paste0(inputs$Genotype[1],'_',inputs$Condition,'_', inputs$Control[1],'_merged.bam')
+        merge_outname_input <-  paste0(sicer_out,inputs$Genotype[1],'_',inputs$Condition,'_', inputs$Control[1],'_merged.bam')
         merge_command_input <- paste0('samtools merge -o ', merge_outname_input,' ', input_info)
 
         print(merge_command_ips)
@@ -115,10 +121,10 @@ for(i in unique(sample_sheet$Genotype)){
         inputs <- data %>% dplyr::filter(Control=='Input')
         ip_info <-  paste(ips$bampath, collapse = " ")
         input_info <- paste(inputs$bampath, collapse = " ")
-        merge_outname_ips <- paste0(ips$Genotype[1],'_',ips$Condition[1],'_merged.bam')
+        merge_outname_ips <- paste0(sicer_out, ips$Genotype[1],'_',ips$Condition[1],'_merged.bam')
         merge_command_ips <- paste0('samtools merge -o ', merge_outname_ips,' ', ip_info)
 
-        merge_outname_input <-  paste0(inputs$Genotype[1],'_',inputs$Condition,'_merged.bam')
+        merge_outname_input <-  paste0(sicer_out, inputs$Genotype[1],'_',inputs$Condition,'_merged.bam')
         merge_command_input <- paste0('samtools merge -o ', merge_outname_input,' ', input_info)
 
         print(merge_command_ips)
